@@ -11,8 +11,10 @@ def api_call(): # API Call Function
     basedate = date.split('-')[0] + date.split('-')[1] + date.split('-')[2]
     basetime = time.split(':')[0] + '00'
     url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
-    params ={'serviceKey' : '', 'pageNo' : '1', 'numOfRows' : '1000', 'dataType' : 'json', 'base_date' : basedate, 'base_time' : basetime, 'nx' : '73', 'ny' : '67' } # Service Key Needed
-
+    params ={'serviceKey' : '', 'pageNo' : '1', 'numOfRows' : '1000', 'dataType' : 'json', 'base_date' : basedate, 'base_time' : basetime, 'nx' : '73', 'ny' : '67' } 
+    # Service Key Needed
+    # nx, ny : 지역 좌표
+    
     response = requests.get(url, params=params)
     result = json.dumps(response.json(), indent=4, sort_keys=True)
 
@@ -36,4 +38,5 @@ schedule.every().day.at('23:11').do(api_call)
 # Make sure to run this code at setted time
 while True:
     schedule.run_pending()
-    time.sleep(1)
+    print(datetime.datetime.now(), 'status = normal') # Status Check
+    time.sleep(0.1) # Delay
