@@ -16,6 +16,7 @@ def api_call(): # API Call Function
     # nx, ny : 지역 좌표
     
     response = requests.get(url, params=params)
+    print(response) # Check response for errors
     result = json.dumps(response.json(), indent=4, sort_keys=True)
 
     with open('./' + basedate + '_' + time.split(':')[0] +'.json', 'w', encoding="UTF-8") as json_file:
