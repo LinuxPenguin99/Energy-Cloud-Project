@@ -2,42 +2,56 @@ import requests
 import json
 import time
 import datetime
-import schedule # Module to make code run automatically
 
-def api_call(): # API Call Function
+def api_call(old_response): # parameter : previous response
     now = datetime.datetime.now()
     date = str(now).split(' ')[0]
     time = str(now).split(' ')[1]
     basedate = date.split('-')[0] + date.split('-')[1] + date.split('-')[2]
     basetime = time.split(':')[0] + '00'
     url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
-    params ={'serviceKey' : '', 'pageNo' : '1', 'numOfRows' : '1000', 'dataType' : 'json', 'base_date' : basedate, 'base_time' : basetime, 'nx' : '73', 'ny' : '67' } 
-    # Service Key Needed
-    # nx, ny : 지역 좌표
+    params ={'serviceKey' : '', 'pageNo' : '1', 'numOfRows' : '1000', 'dataType' : 'json', 'base_date' : basedate, 'base_time' : basetime, 'nx' : '', 'ny' : '' } # serviceKey : 서비스키, nx : x좌표, ny : y좌표
     
-    response = requests.get(url, params=params)
-    print(response) # Check response for errors
-    result = json.dumps(response.json(), indent=4, sort_keys=True)
-
-    with open('./' + basedate + '_' + time.split(':')[0] +'.json', 'w', encoding="UTF-8") as json_file:
-        json.dump(result, json_file)
-    # Change Path If You Want
+    response = requests.post(url, params=params)
     
-    print(basedate, basetime, 'Completed!') # Optional
+    
+    if response.json() == old_response: # Compare response
+        print('Same Data as Before')
+        return old_response
 
+    # Error Exception (Server Data not Renewed or Server's Problem)
+    try:
+        result = json.dumps(response.json(), indent=4, sort_keys=True)
+        with open('./' + basedate + '_' + time.split(':')[0] +'.json', 'w', encoding="UTF-8") as json_file:
+            json.dump(result, json_file)
+        print('New Response Save Complete')
+        return response.json()
+    except:
+        print('Server Data is not Renewed')
+        return old_response
+    
+if __name__ == '__main__':
+    old_response = ''
+    while True:
+        old_response = api_call(old_response)
+        time.sleep(600) # 10 minutes
+        
+'''
+New Code
+1. Server Data renew time is irregular
+2. Work every 0.1s waste memory
+3. Prevent Data overlapping
 
-# Work at setted time
-schedule.every().day.at('02:11').do(api_call)
-schedule.every().day.at('05:11').do(api_call)
-schedule.every().day.at('08:11').do(api_call)
-schedule.every().day.at('11:11').do(api_call)
-schedule.every().day.at('14:11').do(api_call)
-schedule.every().day.at('17:11').do(api_call)
-schedule.every().day.at('20:11').do(api_call)
-schedule.every().day.at('23:11').do(api_call)
+Previous Code
+1. Work every 0.1s
+2. Request only set time
+3. Data overlapping is possible
+4. Error occurred, code stopped
 
-# Make sure to run this code at setted time
-while True:
-    schedule.run_pending()
-    print(datetime.datetime.now(), 'status = normal') # Status Check
-    time.sleep(0.1) # Delay
+Changed Logic
+1. Repeat Time : 0.1 sec -> 10 min == Memory Resource Save
+2. Make exception function -> Prevent Code stopped
+3. Compare Response with previous Code 
+4. Previous Code Flag = Time
+5. New Code Flag = Previous Response
+'''
