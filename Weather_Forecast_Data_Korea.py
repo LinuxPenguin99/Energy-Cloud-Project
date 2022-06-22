@@ -12,7 +12,7 @@ def api_call(old_response): # parameter : previous response
     url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
     params ={'serviceKey' : '', 'pageNo' : '1', 'numOfRows' : '1000', 'dataType' : 'json', 'base_date' : basedate, 'base_time' : basetime, 'nx' : '', 'ny' : '' } # serviceKey : 서비스키, nx : x좌표, ny : y좌표
     
-    response = requests.post(url, params=params)
+    response = requests.get(url, params=params)
     
     
     if response.json() == old_response: # Compare response
