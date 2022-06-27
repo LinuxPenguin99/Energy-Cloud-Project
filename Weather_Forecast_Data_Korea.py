@@ -12,22 +12,26 @@ def api_call(old_response): # parameter : previous response
     url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst'
     params ={'serviceKey' : '', 'pageNo' : '1', 'numOfRows' : '1000', 'dataType' : 'json', 'base_date' : basedate, 'base_time' : basetime, 'nx' : '', 'ny' : '' } # serviceKey : 서비스키, nx : x좌표, ny : y좌표
     
-    response = requests.get(url, params=params)
-    
-    
-    if response.json() == old_response: # Compare response
-        print('Same Data as Before')
-        return old_response
-
     # Error Exception (Server Data not Renewed or Server's Problem)
     try:
-        result = json.dumps(response.json(), indent=4, sort_keys=True)
-        with open('./' + basedate + '_' + time.split(':')[0] +'.json', 'w', encoding="UTF-8") as json_file:
-            json.dump(result, json_file)
-        print('New Response Save Complete')
-        return response.json()
+        response = requests.get(url, params=params)
+        data = response.json() # Response to json
+        if data == old_response: # Compare response
+            print('Same Data as Before')
+            return old_response
+        elif data['response']['header']['resultMsg'] == 'NO_DATA':
+            print(response.json())
+            print(data['response']['header']['resultMsg']) # Get response Result Message Content
+            return old_response
+        # NO_DATA Response is not need to save
+        else:
+            result = json.dumps(response.json(), indent=4, sort_keys=True)
+            with open('./' + basedate + '_' + time.split(':')[0] +'.json', 'w', encoding="UTF-8") as json_file:
+                json.dump(result, json_file)
+            print('New Response Save Complete')
+            return response.json()
     except:
-        print('Server Data is not Renewed')
+        print('Error occurred. Try again after 10 minutes.')
         return old_response
     
 if __name__ == '__main__':
@@ -37,21 +41,8 @@ if __name__ == '__main__':
         time.sleep(600) # 10 minutes
         
 '''
-New Code
-1. Server Data renew time is irregular
-2. Work every 0.1s waste memory
-3. Prevent Data overlapping
-
-Previous Code
-1. Work every 0.1s
-2. Request only set time
-3. Data overlapping is possible
-4. Error occurred, code stopped
-
-Changed Logic
-1. Repeat Time : 0.1 sec -> 10 min == Memory Resource Save
-2. Make exception function -> Prevent Code stopped
-3. Compare Response with previous Code 
-4. Previous Code Flag = Time
-5. New Code Flag = Previous Response
+Changes
+1. Move the response into the try -> Code stopped by response issue is solved. 
+2. 'NO_DATA' case is added -> NO_DATA response saved issue is solved.
+(It caused by change 1)
 '''
