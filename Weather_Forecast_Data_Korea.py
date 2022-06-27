@@ -20,8 +20,12 @@ def api_call(old_response): # parameter : previous response
             print('Same Data as Before')
             return old_response
         elif data['response']['header']['resultMsg'] == 'NO_DATA':
+            '''
+            RESPONSE TEST
             print(response.json())
             print(data['response']['header']['resultMsg']) # Get response Result Message Content
+            '''
+            print('NO_DATA')
             return old_response
         # NO_DATA Response is not need to save
         else:
